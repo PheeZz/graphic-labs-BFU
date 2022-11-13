@@ -2,6 +2,7 @@ import math
 from tkinter import *
 from PIL import Image, ImageDraw
 from tkinter import colorchooser, messagebox
+from turtle import Vec2D
 
 """use it
         https://www.geeksforgeeks.org/python-tkinter-create-different-shapes-using-canvas-class/
@@ -14,13 +15,14 @@ class easy_shapes:
         self.brush_color = "black"
 
         Label(root, text="Параметры:").grid(row=0, column=0, padx=6)
-
+        # size label
+        Label(root, text="Размер кисти:").grid(row=0, column=4, padx=6)
         Scale(root, from_=1, to=100, orient=HORIZONTAL,
               variable=IntVar(value=10), length=200,
-              command=self.select).grid(row=0, column=3, padx=6)
+              command=self.select).grid(row=0, column=5, padx=6)
 
         self.color_label = Label(root, bg=self.brush_color, width=10)
-        self.color_label.grid(row=0, column=2, padx=6)
+        self.color_label.grid(row=0, column=3, padx=6)
 
         self.setup_menu()
         self.setup_brush()
@@ -28,12 +30,23 @@ class easy_shapes:
         self.setup_bind()
         self.setup_button()
 
+    def setup_button(self):
+        Button(root, text="Цвет", command=self.choose_color).grid(
+            row=0, column=1, padx=6)
+
+        Button(root, text="Очистить", command=self.clear_canvas).grid(
+            row=0, column=6, padx=6)
+
+        Button(root, text="Заливка", command=self.pour).grid(
+            row=0, column=8, padx=6)
+
     def setup_menu(self):
         self.menu = Menu(tearoff=0)
         self.menu.add_command(label="Квадрат", command=self.square)
         self.menu.add_command(label="Круг", command=self.circle)
         self.menu.add_command(label="Угол 90", command=self.angle_90)
         self.menu.add_command(label="Светофор", command=self.traffic_light)
+        self.menu.add_command(label="Ромб", command=self.rhombus)
 
     def setup_brush(self):
         self.brush_color = "black"
@@ -47,16 +60,6 @@ class easy_shapes:
     def setup_bind(self):
         self.canvas.bind("<B1-Motion>", self.draw)
         self.canvas.bind("<Button-3>", self.popup)
-
-    def setup_button(self):
-        Button(root, text="Цвет", command=self.choose_color).grid(
-            row=0, column=1, padx=6)
-
-        Button(root, text="Очистить", command=self.clear_canvas).grid(
-            row=0, column=5, padx=6)
-
-        Button(root, text="Заливка", command=self.pour).grid(
-            row=0, column=7, padx=6)
 
     def draw(self, event):
         x1, y1 = (event.x - self.brush_size), (event.y - self.brush_size)
@@ -124,6 +127,31 @@ class easy_shapes:
                                 self.x + self.brush_size,
                                 self.y + 3*self.brush_size,
                                 fill='green', outline='black')
+
+    def get_shape_center(self, points) -> tuple():
+        """Get center of shape."""
+        x = sum(p[0] for p in points) / len(points)
+        y = sum(p[1] for p in points) / len(points)
+        return x, y
+
+    def rotate2D(self, angle, x0, y0, x1, y1):
+        """Rotate (x0, y0) -> (x1, y1) vector by *angle*."""
+
+        x, y = Vec2D(x1-x0, y1-y0).rotate(angle)
+        return x + x0, y + y0
+
+    def draw2Dpolygon(self, points, alpha, origin, *, color='gray'):
+        points = [self.rotate2D(alpha, *[*origin, *p]) for p in points]
+        self.canvas.create_polygon(points, outline=color, fill=color)
+
+    def rhombus(self):
+        """draw square and rotate it"""
+        points = [(self.x, self.y),
+                  (self.x + self.brush_size, self.y),
+                  (self.x + self.brush_size, self.y + self.brush_size),
+                  (self.x, self.y + self.brush_size)]
+        origin = self.get_shape_center(points)
+        self.draw2Dpolygon(points, 45, origin, color=self.brush_color)
 
 
 root = Tk()
