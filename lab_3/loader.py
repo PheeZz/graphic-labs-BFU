@@ -1,14 +1,17 @@
-import math
 from tkinter import *
-from PIL import Image, ImageDraw
 from tkinter import colorchooser, messagebox
 from turtle import Vec2D
+
+import numpy as np
+from PIL import Image, ImageDraw
 
 
 class easy_shapes:
     def __init__(self, root: Tk):
         self.x, self.y = 0, 0
         self.brush_color = "black"
+        global image1
+        global image_draw
 
         Label(root, text="Параметры:").grid(row=0, column=0, padx=6)
         # size label
@@ -43,6 +46,8 @@ class easy_shapes:
         self.menu.add_command(label="Угол 90", command=self.angle_90)
         self.menu.add_command(label="Светофор", command=self.traffic_light)
         self.menu.add_command(label="Ромб", command=self.rhombus)
+        self.menu.add_command(label="Кривая Безье",
+                              command=self.bezier_curve)
 
     def setup_brush(self):
         self.brush_color = "black"
@@ -54,6 +59,7 @@ class easy_shapes:
                          padx=5, pady=5, sticky=N + S + E + W)
 
     def setup_bind(self):
+        """Bind mouse events to canvas"""
         self.canvas.bind("<B1-Motion>", self.draw)
         self.canvas.bind("<Button-3>", self.popup)
 
@@ -149,6 +155,73 @@ class easy_shapes:
         origin = self.get_shape_center(points)
         self.draw_2d_polygon(points, 45, origin, color=self.brush_color)
 
+    def bezier_curve(self, points=[], continue_flag=True, debug_mode=True):
+        """draw lines with smooth edges"""
+        if not continue_flag:
+            return
+        # remove hold lmb drawning
+        self.canvas.unbind("<B1-Motion>")
+
+        def stop_drawning(event):
+            # loop until right mouse button clicked
+
+            nonlocal continue_flag, points
+            continue_flag = False
+            del points
+            self.canvas.unbind("<Button-1>")
+            self.setup_bind()
+
+        try:
+            self.canvas.bind("<Button-3>", stop_drawning)
+        except Exception as e:
+            print(e)
+
+        def add_point(event):
+            # wait while 3 points be added to list by pressing left mouse button
+            points.append((event.x, event.y))
+            if len(points) == 3:
+                self.canvas.unbind('<Button-1>')
+
+        try:
+            while len(points) < 3:
+                self.canvas.bind('<Button-1>', add_point)
+                self.canvas.update()
+        except UnboundLocalError:
+            # reference before assignment, fix for extra use of function
+            return
+
+        if debug_mode:
+            # draw points as circles 'red' for first and last, 'green' for second point
+            self.canvas.create_oval(points[0][0] - 5, points[0][1] - 5,
+                                    points[0][0] + 5, points[0][1] + 5, fill='red')
+            self.canvas.create_oval(points[1][0] - 5, points[1][1] - 5,
+                                    points[1][0] + 5, points[1][1] + 5, fill='green')
+            self.canvas.create_oval(points[2][0] - 5, points[2][1] - 5,
+                                    points[2][0] + 5, points[2][1] + 5, fill='red')
+
+        curves = []
+        for dot in map(lambda x: x/100.0, range(0, 105, 5)):
+
+            # calculate cubic bezier curve
+            # x = (1.0-dot)**3*points[0][0] + 3*(1.0-dot)**2*dot*points[1][0] + \
+            #     3*(1.0-dot)*dot**2*points[2][0] + dot**3*points[3][0]
+
+            # y = (1.0-dot)**3*points[0][1] + 3*(1.0-dot)**2*dot*points[1][1] + \
+            #     3*(1.0-dot)*dot**2*points[2][1] + dot**3*points[3][1]
+
+            # calculate square bezier curve
+            x = (1.0-dot)**2*points[0][0] + 2*(1.0-dot) * \
+                dot*points[1][0] + dot**2*points[2][0]
+
+            y = (1.0-dot)**2*points[0][1] + 2*(1.0-dot) * \
+                dot*points[1][1] + dot**2*points[2][1]
+
+            curves.append([x, y])
+
+        self.canvas.create_line(curves, fill=self.brush_color)
+
+        if continue_flag:
+            self.bezier_curve([points[-1]])
 
 
 root = Tk()

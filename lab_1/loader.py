@@ -3,9 +3,6 @@ from tkinter import *
 from PIL import Image, ImageDraw
 from tkinter import colorchooser, messagebox
 
-"""use it
-        https://www.geeksforgeeks.org/python-tkinter-create-different-shapes-using-canvas-class/
-        """
 
 
 class easy_shapes:
