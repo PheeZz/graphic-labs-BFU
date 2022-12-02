@@ -1,3 +1,6 @@
-from loader import root
+from loader import root, easy_shapes
 
-root.mainloop()
+
+if __name__ == '__main__':
+    easy_shapes(root)
+    root.mainloop()

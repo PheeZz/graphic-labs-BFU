@@ -2,7 +2,6 @@ from tkinter import *
 from tkinter import colorchooser, messagebox
 from turtle import Vec2D
 
-import numpy as np
 from PIL import Image, ImageDraw
 
 
@@ -10,18 +9,15 @@ class easy_shapes:
     def __init__(self, root: Tk):
         self.x, self.y = 0, 0
         self.brush_color = "black"
-        global image1
-        global image_draw
 
         Label(root, text="Параметры:").grid(row=0, column=0, padx=6)
-        # size label
-        Label(root, text="Размер кисти:").grid(row=0, column=4, padx=6)
+        Label(root, text="Размер кисти:").grid(row=0, column=3, padx=6)
         Scale(root, from_=1, to=100, orient=HORIZONTAL,
               variable=IntVar(value=10), length=200,
-              command=self.select).grid(row=0, column=5, padx=6)
+              command=self.select).grid(row=0, column=4, padx=6)
 
         self.color_label = Label(root, bg=self.brush_color, width=10)
-        self.color_label.grid(row=0, column=3, padx=6)
+        self.color_label.grid(row=0, column=2, padx=6)
 
         self.setup_menu()
         self.setup_brush()
@@ -37,17 +33,19 @@ class easy_shapes:
             row=0, column=6, padx=6)
 
         Button(root, text="Заливка", command=self.pour).grid(
-            row=0, column=8, padx=6)
+            row=0, column=5, padx=6)
 
     def setup_menu(self):
         self.menu = Menu(tearoff=0)
         self.menu.add_command(label="Квадрат", command=self.square)
         self.menu.add_command(label="Круг", command=self.circle)
-        self.menu.add_command(label="Угол 90", command=self.angle_90)
+        self.menu.add_command(label="Угол 90", command=self.arc_90_degrees)
         self.menu.add_command(label="Светофор", command=self.traffic_light)
         self.menu.add_command(label="Ромб", command=self.rhombus)
         self.menu.add_command(label="Кривая Безье",
                               command=self.bezier_curve)
+        self.menu.add_command(label="Ромб с кривой Безье",
+                              command=self.bezier_rhombus)
 
     def setup_brush(self):
         self.brush_color = "black"
@@ -108,7 +106,7 @@ class easy_shapes:
             self.y + self.brush_size,
             fill=self.brush_color, outline=self.brush_color)
 
-    def angle_90(self):
+    def arc_90_degrees(self):
         self.canvas.create_arc(self.x, self.y,
                                self.x + self.brush_size,
                                self.y + self.brush_size,
@@ -189,7 +187,7 @@ class easy_shapes:
         except UnboundLocalError:
             # reference before assignment, fix for extra use of function
             return
-
+        print(points)
         if debug_mode:
             # draw points as circles 'red' for first and last, 'green' for second point
             self.canvas.create_oval(points[0][0] - 5, points[0][1] - 5,
@@ -223,6 +221,15 @@ class easy_shapes:
         if continue_flag:
             self.bezier_curve([points[-1]])
 
+    def bezier_rhombus(self):
+        """draw rhoombus by using bezier curve"""
+        points = [[(354, 81), (401, 100), (407, 163)]
+                  [(407, 163), (389, 207), (341, 235)]
+                  [(341, 235), (290, 216), (278, 154)]
+                  [(278, 154), (297, 96), (353, 82)]]
+        for point in points:
+            self.bezier_curve(point)
+
 
 root = Tk()
 root.title("Paint")
@@ -235,5 +242,3 @@ root.rowconfigure(2, weight=1)
 
 image1 = Image.new("RGB", (800, 600), "white")
 draw_image = ImageDraw.Draw(image1)
-
-easy_shapes(root)

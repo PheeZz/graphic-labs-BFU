@@ -1,8 +1,7 @@
-import math
 from tkinter import *
-from PIL import Image, ImageDraw
-from tkinter import colorchooser, messagebox
+from tkinter import colorchooser
 
+from PIL import Image, ImageDraw
 
 
 class easy_shapes:
@@ -134,5 +133,3 @@ root.rowconfigure(2, weight=1)
 
 image1 = Image.new("RGB", (800, 600), "white")
 draw_image = ImageDraw.Draw(image1)
-
-easy_shapes(root)
